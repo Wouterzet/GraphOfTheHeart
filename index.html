@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Graph Of My Heart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #canvas {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="display: flex">
+        <div id="canvas">
+            <h2>Heart Rate Sensor 1</h2>
+            <canvas id="heart-rate-chart-1"></canvas>
+        </div>
+        <div id="canvas">
+            <h2>Heart Rate Sensor 2</h2>
+            <canvas id="heart-rate-chart-2"></canvas>
+        </div>
+    </div>
+    <script>
+        // Create an empty array to store the heart rate sensor data
+        let heartRateData1 = [];
+        let heartRateData2 = [];
+
+        // Create a new Chart.js chart instance for sensor 1
+        let heartRateChart1 = new Chart(document.getElementById('heart-rate-chart-1'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Heart Rate',
+                    data: [],
+                    fill: false,
+                    borderColor: 'rgb(255, 87, 51)',
+                    lineTension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            displayFormats: {
+                                second: 'h:mm:ss a'
+                            }
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+
+        // Create a new Chart.js chart instance for sensor 2
+        let heartRateChart2 = new Chart(document.getElementById('heart-rate-chart-2'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Heart Rate',
+                    data: [],
+                    fill: false,
+                    borderColor: 'rgb(255, 87, 51)',
+                    lineTension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            displayFormats: {
+                                second: 'h:mm:ss a'
+                            }
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+
+        // Function to retrieve heart rate sensor data for sensor 1 and add it to the chart
+        function getHeartRateData1() {
+            fetch('https://cmd.camp/iot/get/zDgGPPCC/')
+                .then(response => response.text())
+                .then(data => {
+                    let now = new Date();
+                    heartRateData1.push({
+                        x: now,
+                        y: parseInt(data)
+                    });
+                    let fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+                    heartRateData1 = heartRateData1.filter(dataPoint => dataPoint.x >= fiveMinutesAgo);
+                    heartRateChart1.data.labels = heartRateData1.map(dataPoint => dataPoint.x.toLocaleTimeString());
+                    heartRateChart1.data.datasets[0].data = heartRateData1.map(dataPoint => dataPoint.y);
+                    heartRateChart1.update();
+                });
+        }
+
+        function getHeartRateData2() {
+            fetch('https://cmd.camp/iot/get/wuqTEzxE/')
+                .then(response => response.text())
+                .then(data => {
+                    let now = new Date();
+                    heartRateData2.push({
+                        x: now,
+                        y: parseInt(data)
+                    });
+                    let fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+                    heartRateData2 = heartRateData2.filter(dataPoint => dataPoint.x >= fiveMinutesAgo);
+                    heartRateChart2.data.labels = heartRateData2.map(dataPoint => dataPoint.x.toLocaleTimeString());
+                    heartRateChart2.data.datasets[0].data = heartRateData2.map(dataPoint => dataPoint.y);
+                    heartRateChart2.update();
+                });
+        }
+
+        // Call getHeartRateData1 every 2 seconds to retrieve new sensor readings for the first chart
+        setInterval(getHeartRateData1, 2000);
+
+        // Call getHeartRateData2 every 2 seconds to retrieve new sensor readings for the second chart
+        setInterval(getHeartRateData2, 2000);
+    </script>
+</body>
+
+</html>
